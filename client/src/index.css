@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.font-man {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .mobile-show-less-btn {
+    position: fixed !important;
+    top: 50% !important;
+    right: 20px !important;
+    transform: translateY(-50%) !important;
+    z-index: 99999 !important;
+  }
+  
+  .mobile-show-less-btn button {
+    background: linear-gradient(45deg, #FFD700, #FF6B35, #FF0000) !important;
+    color: white !important;
+    border: 5px solid white !important;
+    box-shadow: 0 12px 35px rgba(255, 0, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.8) !important;
+    font-weight: 900 !important;
+    font-size: 20px !important;
+    padding: 20px 25px !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;
+    animation: pulse 2s infinite !important;
+  }
+  
+  .mobile-show-less-btn button:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 0 15px 40px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 1) !important;
+  }
+} 

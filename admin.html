@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tea House Admin Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/120dfd5ad9.js" crossorigin="anonymous"></script>
+    
+    <style>
+        .font-man {
+            font-family: "Manrope", sans-serif;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        .content-area {
+            transition: margin-left 0.3s ease;
+        }
+        
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF8938;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending { background-color: #FEF3C7; color: #92400E; }
+        .status-confirmed { background-color: #DBEAFE; color: #1E40AF; }
+        .status-shipped { background-color: #D1FAE5; color: #065F46; }
+        .status-delivered { background-color: #D1FAE5; color: #065F46; }
+        .status-cancelled { background-color: #FEE2E2; color: #991B1B; }
+    </style>
+</head>
+<body class="bg-gray-50 font-man">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50">
+        <div class="p-6">
+            <div class="flex items-center mb-8">
+                <img class="w-10 h-10 mr-3" src="images/cup.png" alt="Tea House Logo">
+                <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+            </div>
+            
+            <nav class="space-y-2">
+                <button onclick="showSection('dashboard')" id="nav-dashboard" class="w-full flex items-center px-4 py-3 text-gray-700 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg">
+                    <i class="fa-solid fa-chart-line mr-3"></i>
+                    Dashboard
+                </button>
+                <button onclick="showSection('customers')" id="nav-customers" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-users mr-3"></i>
+                    Customers
+                </button>
+                <button onclick="showSection('orders')" id="nav-orders" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-shopping-cart mr-3"></i>
+                    Orders
+                </button>
+                <button onclick="showSection('products')" id="nav-products" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-box mr-3"></i>
+                    Products
+                </button>
+                <button onclick="showSection('reviews')" id="nav-reviews" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-star mr-3"></i>
+                    Reviews
+                </button>
+                <button onclick="showSection('subscribers')" id="nav-subscribers" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-envelope mr-3"></i>
+                    Newsletter
+                </button>
+                <button onclick="showSection('messages')" id="nav-messages" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                    <i class="fa-solid fa-comments mr-3"></i>
+                    Messages
+                </button>
+            </nav>
+        </div>
+        
+        <div class="absolute bottom-6 left-6 right-6">
+            <a href="http://localhost:3000" class="w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <i class="fa-solid fa-home mr-3"></i>
+                Back to Website
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="content-area ml-64 p-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 id="page-title" class="text-3xl font-bold text-gray-800">Dashboard</h2>
+                <p id="page-description" class="text-gray-600">Welcome to Tea House Admin Panel</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Last Updated</p>
+                    <p id="last-updated" class="text-sm font-medium text-gray-700">Just now</p>
+                </div>
+                <button onclick="refreshData()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                    <i class="fa-solid fa-refresh mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fa-solid fa-users text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500">Total Customers</p>
+                            <p id="total-customers" class="text-2xl font-bold text-gray-800">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fa-solid fa-shopping-cart text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500">Total Orders</p>
+                            <p id="total-orders" class="text-2xl font-bold text-gray-800">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-lg">
+                            <i class="fa-solid fa-star text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500">Total Reviews</p>
+                            <p id="total-reviews" class="text-2xl font-bold text-gray-800">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fa-solid fa-envelope text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500">Newsletter Subscribers</p>
+                            <p id="total-subscribers" class="text-2xl font-bold text-gray-800">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Orders</h3>
+                    <div id="recent-orders" class="space-y-3">
+                        <div class="text-center py-8">
+                            <div class="loading mx-auto"></div>
+                            <p class="text-gray-500 mt-2">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Customers</h3>
+                    <div id="recent-customers" class="space-y-3">
+                        <div class="text-center py-8">
+                            <div class="loading mx-auto"></div>
+                            <p class="text-gray-500 mt-2">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div id="customers-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">All Customers</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading customers...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">All Orders</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading orders...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div id="products-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">All Products</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading products...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div id="reviews-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">All Reviews</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Featured</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading reviews...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscribers Section -->
+        <div id="subscribers-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">Newsletter Subscribers</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscribed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subscribers-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="3" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading subscribers...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Section -->
+        <div id="messages-section" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800">Contact Messages</h3>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messages-table-body" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="loading mx-auto"></div>
+                                    <p class="text-gray-500 mt-2">Loading messages...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let dataCache = {};
+
+        // Initialize admin dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('dashboard');
+            loadDashboardData();
+        });
+
+        // Navigation functions
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Remove active state from all nav buttons
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = 'w-full flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors';
+            });
+            
+            // Show selected section
+            document.getElementById(section + '-section').classList.remove('hidden');
+            
+            // Add active state to selected nav button
+            document.getElementById('nav-' + section).className = 'w-full flex items-center px-4 py-3 text-gray-700 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg';
+            
+            // Update page title and description
+            updatePageHeader(section);
+            
+            // Load section data
+            loadSectionData(section);
+            
+            currentSection = section;
+        }
+
+        function updatePageHeader(section) {
+            const titles = {
+                dashboard: 'Dashboard',
+                customers: 'Customer Management',
+                orders: 'Order Management',
+                products: 'Product Management',
+                reviews: 'Review Management',
+                subscribers: 'Newsletter Subscribers',
+                messages: 'Contact Messages'
+            };
+            
+            const descriptions = {
+                dashboard: 'Overview of your Tea House business',
+                customers: 'Manage customer information and data',
+                orders: 'Track and manage customer orders',
+                products: 'Manage your tea product catalog',
+                reviews: 'Monitor customer reviews and feedback',
+                subscribers: 'Manage newsletter subscriptions',
+                messages: 'View customer contact messages'
+            };
+            
+            document.getElementById('page-title').textContent = titles[section];
+            document.getElementById('page-description').textContent = descriptions[section];
+        }
+
+        // Data loading functions
+        async function loadSectionData(section) {
+            if (section === 'dashboard') {
+                loadDashboardData();
+            } else {
+                await loadTableData(section);
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const [customers, orders, reviews, subscribers] = await Promise.all([
+                    fetchData('/api/customers'),
+                    fetchData('/api/orders'),
+                    fetchData('/api/reviews'),
+                    fetchData('/api/subscribers')
+                ]);
+
+                // Update dashboard stats
+                document.getElementById('total-customers').textContent = customers.length;
+                document.getElementById('total-orders').textContent = orders.length;
+                document.getElementById('total-reviews').textContent = reviews.length;
+                document.getElementById('total-subscribers').textContent = subscribers.length;
+
+                // Update recent orders
+                updateRecentOrders(orders.slice(0, 5));
+                
+                // Update recent customers
+                updateRecentCustomers(customers.slice(0, 5));
+                
+                updateLastUpdated();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showError('Failed to load dashboard data');
+            }
+        }
+
+        async function loadTableData(section) {
+            try {
+                const data = await fetchData(`/api/${section}`);
+                dataCache[section] = data;
+                
+                switch(section) {
+                    case 'customers':
+                        renderCustomersTable(data);
+                        break;
+                    case 'orders':
+                        renderOrdersTable(data);
+                        break;
+                    case 'products':
+                        renderProductsTable(data);
+                        break;
+                    case 'reviews':
+                        renderReviewsTable(data);
+                        break;
+                    case 'subscribers':
+                        renderSubscribersTable(data);
+                        break;
+                    case 'messages':
+                        renderMessagesTable(data);
+                        break;
+                }
+                
+                updateLastUpdated();
+            } catch (error) {
+                console.error(`Error loading ${section} data:`, error);
+                showError(`Failed to load ${section} data`);
+            }
+        }
+
+        // API helper function
+        async function fetchData(endpoint) {
+            const response = await fetch(endpoint);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            return result.data || result;
+        }
+
+        // Table rendering functions
+        function renderCustomersTable(customers) {
+            const tbody = document.getElementById('customers-table-body');
+            
+            if (customers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No customers found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = customers.map(customer => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${customer.name || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${customer.email || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${customer.phone || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">
+                            ${customer.address ? 
+                                `${customer.address.street || ''} ${customer.address.city || ''} ${customer.address.state || ''} ${customer.address.zip_code || ''} ${customer.address.country || ''}`.trim() || 'N/A' 
+                                : 'N/A'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(customer.created_at)}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderOrdersTable(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No orders found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = orders.map(order => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${order._id || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${order.customer_id || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">
+                            ${order.items ? order.items.map(item => 
+                                `${item.product_name || item.name} (${item.quantity})`
+                            ).join(', ') : 'N/A'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">$${order.total_amount || 0}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(order.order_date || order.created_at)}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProductsTable(products) {
+            const tbody = document.getElementById('products-table-body');
+            
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No products found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = products.map(product => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${product.name || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">${product.description || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">$${product.price || 0}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${product.category || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${product.stock_quantity || 0}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderReviewsTable(reviews) {
+            const tbody = document.getElementById('reviews-table-body');
+            
+            if (reviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No reviews found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = reviews.map(review => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${review.customer_name || 'N/A'}</div>
+                        <div class="text-sm text-gray-500">${review.customer_title || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            ${generateStars(review.rating)}
+                            <span class="ml-2 text-sm text-gray-900">${review.rating}/5</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900 max-w-xs truncate">${review.comment || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${review.is_featured ? 'status-delivered' : 'status-pending'}">
+                            ${review.is_featured ? 'Featured' : 'Regular'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(review.created_at)}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSubscribersTable(subscribers) {
+            const tbody = document.getElementById('subscribers-table-body');
+            
+            if (subscribers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">No subscribers found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = subscribers.map(subscriber => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${subscriber.email || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${subscriber.is_active ? 'status-delivered' : 'status-cancelled'}">
+                            ${subscriber.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(subscriber.subscribed_at)}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderMessagesTable(messages) {
+            const tbody = document.getElementById('messages-table-body');
+            
+            if (messages.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No messages found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = messages.map(message => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${message.name || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${message.email || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${message.subject || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900 max-w-xs truncate">${message.message || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${formatDate(message.created_at)}</div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Dashboard helper functions
+        function updateRecentOrders(orders) {
+            const container = document.getElementById('recent-orders');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">No recent orders</p>';
+                return;
+            }
+            
+            container.innerHTML = orders.map(order => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">Order #${order._id ? order._id.slice(-6) : 'N/A'}</p>
+                        <p class="text-xs text-gray-500">$${order.total_amount || 0}</p>
+                    </div>
+                    <span class="status-badge status-${order.status || 'pending'}">${order.status || 'pending'}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateRecentCustomers(customers) {
+            const container = document.getElementById('recent-customers');
+            
+            if (customers.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">No recent customers</p>';
+                return;
+            }
+            
+            container.innerHTML = customers.map(customer => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">${customer.name || 'N/A'}</p>
+                        <p class="text-xs text-gray-500">${customer.email || 'N/A'}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">${formatDate(customer.created_at)}</span>
+                </div>
+            `).join('');
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let stars = '';
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fa-solid fa-star text-yellow-400"></i>';
+            }
+            if (hasHalfStar) {
+                stars += '<i class="fa-solid fa-star-half-stroke text-yellow-400"></i>';
+            }
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="fa-regular fa-star text-yellow-400"></i>';
+            }
+            return stars;
+        }
+
+        function updateLastUpdated() {
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        function refreshData() {
+            loadSectionData(currentSection);
+        }
+
+        function showError(message) {
+            // You can implement a toast notification here
+            console.error(message);
+            alert(message);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,92 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Milk Tea",
+      "description": "Smooth and creamy milk tea with rich flavor and perfect sweetness balance.",
+      "price": 4.99,
+      "image_url": "images/tea-1.png",
+      "category": "Milk Tea",
+      "stock_quantity": 100,
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z",
+      "updated_at": "2025-07-12T21:32:34.693Z"
+    },
+    {
+      "id": 2,
+      "name": "Black Tea",
+      "description": "Strong and bold black tea with natural antioxidants and refreshing taste.",
+      "price": 3.99,
+      "image_url": "images/tea-2.png",
+      "category": "Black Tea",
+      "stock_quantity": 150,
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z",
+      "updated_at": "2025-07-12T21:32:34.693Z"
+    },
+    {
+      "id": 3,
+      "name": "Lemon Tea",
+      "description": "Refreshing lemon tea with citrus zest and natural vitamin C boost.",
+      "price": 4.49,
+      "image_url": "images/tea-3.png",
+      "category": "Herbal Tea",
+      "stock_quantity": 80,
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z",
+      "updated_at": "2025-07-12T21:32:34.693Z"
+    },
+    {
+      "id": 4,
+      "name": "Orange Tea",
+      "description": "Sweet and tangy orange tea with natural fruit essence and aroma.",
+      "price": 4.79,
+      "image_url": "images/tea-4.png",
+      "category": "Fruit Tea",
+      "stock_quantity": 90,
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z",
+      "updated_at": "2025-07-12T21:32:34.693Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "customer_name": "Nusrat Faria",
+      "customer_title": "Tea Enthusiast",
+      "rating": 5,
+      "comment": "We are providing the best and suitable tea services for the people who are interested to quality tea. The taste and aroma are simply amazing!",
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z"
+    },
+    {
+      "id": 2,
+      "customer_name": "Ahmed Khan",
+      "customer_title": "Business Owner",
+      "rating": 5,
+      "comment": "The tea quality is exceptional and the service is outstanding. I love their premium tea collection!",
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z"
+    },
+    {
+      "id": 3,
+      "customer_name": "Sarah Johnson",
+      "customer_title": "Tea Connoisseur",
+      "rating": 5,
+      "comment": "Best tea house in the city! Their traditional tea preparation methods are simply perfect.",
+      "is_featured": true,
+      "created_at": "2025-07-12T21:32:34.693Z"
+    }
+  ],
+  "subscribers": [
+    {
+      "id": 1,
+      "email": "user@example.com",
+      "is_active": true,
+      "subscribed_at": "2025-07-12T21:33:45.618Z"
+    }
+  ],
+  "contact_messages": [],
+  "customers": [],
+  "orders": []
+}
